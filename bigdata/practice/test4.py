@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder, OneHotEncoder, Normalizer
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
 
 
 # 判断什么类型的人容易离职
@@ -72,8 +73,19 @@ def map_salary(s):
     return d.get(s, 0)
 
 
+# 训练模型
+def hr_modeling(features, label):
+    # 划分训练集，测试集，验证集，按占比6:2:2分配
+    f_v = features.values
+    l_v = features.values
+    X_tt, X_validation, Y_tt, Y_validation = train_test_split(f_v, l_v, test_size=0.2)
+    X_train, X_test, Y_train, Y_test = train_test_split(X_tt, Y_tt, test_size=0.2)
+    print(len(X_train), len(X_validation), len(X_test))
+
+
 def main():
-    print(hr_preprocessing())
+    features,label=hr_preprocessing()
+    hr_modeling(features,label)
 
 
 if __name__ == '__main__':
