@@ -84,6 +84,10 @@ def hr_modeling(features, label):
     from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
     from sklearn.metrics import accuracy_score, recall_score, f1_score
     from sklearn.naive_bayes import GaussianNB, BernoulliNB
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.svm import SVC
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.ensemble import AdaBoostClassifier
     models = []
 
     # KNN 模型
@@ -91,6 +95,14 @@ def hr_modeling(features, label):
     # 朴素贝叶斯模型
     models.append(("GaussianNB", GaussianNB()))
     models.append(("BernoulliNB", BernoulliNB()))
+    # 决策树
+    models.append(("DecisionTree", DecisionTreeClassifier()))
+    # 支持向量机
+    models.append(("SVM", SVC(C=1000)))
+    # 随机森林
+    models.append(("RandomForest", RandomForestClassifier(n_estimators=11, max_features=None)))
+    # 提升法
+    models.append(("AdaBoost", AdaBoostClassifier(n_estimators=100)))
     for clf_name, clf in models:
         clf.fit(X_train, Y_train)
         xy_lst = [(X_train, Y_train), (X_validation, Y_validation), (X_test, Y_test)]
