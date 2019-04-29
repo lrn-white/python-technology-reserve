@@ -43,11 +43,11 @@ def hr_preprocessing(sl=False, le=False, npr=False, amh=False, tsc=False, wa=Fal
     for i in range(len(scaler_list)):
         if not scaler_list[i]:
             df[colume_list[i]] = \
-                MinMaxScaler().fit_transform(df[colume_list[i]].values.reshape(-1, 1)).reshape(1, -1)[
+                MinMaxScaler().fit_transform(df[colume_list[i]].astype(float).values.reshape(-1, 1)).reshape(1, -1)[
                     0]
         else:
             df[colume_list[i]] = \
-                StandardScaler().fit_transform(df[colume_list[i]].values.reshape(-1, 1)).reshape(1, -1)[
+                StandardScaler().fit_transform(df[colume_list[i]].astype(float).values.reshape(-1, 1)).reshape(1, -1)[
                     0]
 
     scaler_list2 = [dp, slr]
@@ -59,7 +59,7 @@ def hr_preprocessing(sl=False, le=False, npr=False, amh=False, tsc=False, wa=Fal
             else:
                 df[colume_list2[i]] = LabelEncoder().fit_transform(df[colume_list2[i]])
             df[colume_list2[i]] = \
-                MinMaxScaler().fit_transform(df[colume_list2[i]].values.reshape(-1, 1)).reshape(1, -1)[
+                MinMaxScaler().fit_transform(df[colume_list2[i]].astype(float).values.reshape(-1, 1)).reshape(1, -1)[
                     0]
         else:
             df = pd.get_dummies(df, colume_list2[i])
@@ -77,15 +77,43 @@ def map_salary(s):
 def hr_modeling(features, label):
     # 划分训练集，测试集，验证集，按占比6:2:2分配
     f_v = features.values
-    l_v = features.values
+    l_v = label.values
     X_tt, X_validation, Y_tt, Y_validation = train_test_split(f_v, l_v, test_size=0.2)
-    X_train, X_test, Y_train, Y_test = train_test_split(X_tt, Y_tt, test_size=0.2)
-    print(len(X_train), len(X_validation), len(X_test))
+    X_train, X_test, Y_train, Y_test = train_test_split(X_tt, Y_tt, test_size=0.25)
+
+    from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
+    from sklearn.metrics import accuracy_score, recall_score, f1_score
+    from sklearn.naive_bayes import GaussianNB, BernoulliNB
+    models = []
+
+    # KNN 模型
+    models.append(("KNN", KNeighborsClassifier(n_neighbors=3)))
+    # 朴素贝叶斯模型
+    models.append(("GaussianNB", GaussianNB()))
+    models.append(("BernoulliNB", BernoulliNB()))
+    for clf_name, clf in models:
+        clf.fit(X_train, Y_train)
+        xy_lst = [(X_train, Y_train), (X_validation, Y_validation), (X_test, Y_test)]
+        for i in range(len(xy_lst)):
+            X_part = xy_lst[i][0]
+            Y_part = xy_lst[i][1]
+            Y_pred = clf.predict(X_part)
+            print(i)
+            # 衡量指标,验证集对比
+            print(clf_name, "-ACC:", accuracy_score(Y_part, Y_pred))
+            print(clf_name, "-REC:", recall_score(Y_part, Y_pred))
+            print(clf_name, "-F-Score:", f1_score(Y_part, Y_pred))
+
+    # 存储模型
+    # from sklearn.externals import joblib
+    # joblib.dump(knn_clf, "knn_clf")
+    # # 加载模型
+    # joblib.load("knn_clf")
 
 
 def main():
-    features,label=hr_preprocessing()
-    hr_modeling(features,label)
+    features, label = hr_preprocessing()
+    hr_modeling(features, label)
 
 
 if __name__ == '__main__':
