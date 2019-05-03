@@ -88,6 +88,32 @@ def hr_modeling(features, label):
     from sklearn.svm import SVC
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.ensemble import AdaBoostClassifier
+    from sklearn.linear_model import LogisticRegression
+    from keras.layers.core import Dense, Activation
+    from keras.optimizers import SGD
+    from keras.models import Sequential
+    from sklearn.ensemble import GradientBoostingClassifier
+
+    # 人工神经网络
+    # mdl = Sequential()
+    # mdl.add(Dense(50, input_dim=len(f_v[0])))
+    # mdl.add(Activation("sigmoid"))
+    # mdl.add(Dense(2))
+    # mdl.add(Activation("softmax"))
+    # sgd = SGD(lr=0.1)
+    # mdl.compile(loss="mean_squared_error", optimizer="adam")
+    # mdl.fit(X_train, np.array([[0, 1] if i == 1 else [1, 0] for i in Y_train]), nb_epoch=20000, batch_size=8999)
+    # xy_lst = [(X_train, Y_train), (X_validation, Y_validation), (X_test, Y_test)]
+    # for i in range(len(xy_lst)):
+    #     X_part = xy_lst[i][0]
+    #     Y_part = xy_lst[i][1]
+    #     Y_pred = mdl.predict_classes(X_part)
+    #     print(i)
+    #     # 衡量指标,验证集对比
+    #     print("NN", "-ACC:", accuracy_score(Y_part, Y_pred))
+    #     print("NN", "-REC:", recall_score(Y_part, Y_pred))
+    #     print("NN", "-F-Score:", f1_score(Y_part, Y_pred))
+
     models = []
 
     # KNN 模型
@@ -103,6 +129,10 @@ def hr_modeling(features, label):
     models.append(("RandomForest", RandomForestClassifier(n_estimators=11, max_features=None)))
     # 提升法
     models.append(("AdaBoost", AdaBoostClassifier(n_estimators=100)))
+    # 逻辑斯特回归
+    models.append(("LogisticRegression", LogisticRegression(C=1000, tol=1e-10, solver="sag", max_iter=10000)))
+    # 回归树
+    models.append(("GBDT", GradientBoostingClassifier(max_depth=6, n_estimators=100)))
     for clf_name, clf in models:
         clf.fit(X_train, Y_train)
         xy_lst = [(X_train, Y_train), (X_validation, Y_validation), (X_test, Y_test)]
@@ -123,9 +153,27 @@ def hr_modeling(features, label):
     # joblib.load("knn_clf")
 
 
+# 回归模型
+def regr_test(features, label):
+    print("X", features)
+    print("Y", label)
+    from sklearn.linear_model import LinearRegression, Ridge, Lasso
+    # 线性回归
+    # regr = LinearRegression()
+    # regr = Ridge(alpha=0.1)
+    regr = Lasso(alpha=0.1)
+
+    regr.fit(features.values, label.values)
+    Y_pred = regr.predict(features.values)
+    print("Coef:", regr.coef_)
+    from sklearn.metrics import mean_squared_error
+    print("MSE:", mean_squared_error(Y_pred, label.values))
+
+
 def main():
     features, label = hr_preprocessing()
     hr_modeling(features, label)
+    # regr_test(features[["number_project", "average_montly_hours"]], features["last_evaluation"])#
 
 
 if __name__ == '__main__':
